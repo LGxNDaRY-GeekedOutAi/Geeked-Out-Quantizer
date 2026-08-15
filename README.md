@@ -72,8 +72,8 @@ The project provides both a **polished desktop application** and a **powerful co
 
 - **GGUF Format Support** — Full compatibility with llama.cpp ecosystem
 - **Multiple Quantization Methods** — Q4_K_M, Q5_K_M, Q6_K, IQ2_XS, IQ2_M, and more
-- **Configurable Pipeline** — YAML/JSON configuration files
-- **Cross-Platform** — Windows, Linux, macOS support
+- **Configurable Pipeline** — In-app configuration with save/load presets
+- **Cross-Platform** — Windows, Linux, macOS support (desktop app); Windows-only (CLI scripts)
 
 ---
 
@@ -108,9 +108,10 @@ Geeked.Out Quantizer
 
 - **Node.js** 18+ 
 - **Git**
-- **Windows**: PowerShell 7+
-- **Linux/macOS**: Bash/Zsh
+- **Windows**: PowerShell 7+ (required for CLI scripts)
 - **CUDA GPU** (optional, for accelerated quantization)
+
+> **Note:** The CLI/PowerShell scripts are Windows-only. The desktop app supports Windows, Linux, and macOS.
 
 ### 1. Clone the Repository
 
@@ -127,13 +128,9 @@ npm install
 
 ### 3. Download llama.cpp Binary
 
-```bash
-# Windows
+```powershell
+# Windows (PowerShell)
 .\scripts\download-binaries.ps1
-
-# Linux/macOS
-chmod +x scripts/download-binaries.sh
-./scripts/download-binaries.sh
 ```
 
 ### 4. Launch the Desktop App
@@ -175,11 +172,12 @@ npm run electron:build
 # DMG will be in dist/
 ```
 
-### CLI Only
+### CLI Only (Windows)
 
 ```bash
 npm install
 # Use PowerShell scripts directly
+.\scripts\quantize.ps1 -ModelPath "path/to/model.gguf" -QuantType IQ2_M
 ```
 
 ---
@@ -189,181 +187,196 @@ npm install
 ### Desktop App
 
 1. **Launch** the app with `npm start`
-2. **Import Model** — Click "Import Model" or drag a GGUF file
-3. **Select Quantization Type** — Choose from available methods
-4. **Configure Parameters** — Adjust threads, batch size, etc.
-5. **Generate imatrix** (optional) — For IQ2_M and other importance-aware methods
-6. **Start Quantization** — Click "Quantize" and monitor progress
+2. **Import** a GGUF model via drag-and-drop or file browser
+3. **Select** a quantization method from the dropdown
+4. **Configure** parameters (threads, GPU layers, imatrix path)
+5. **Start** quantization and monitor progress in the log viewer
+6. **Save** your configuration as a preset for future use
 
 ### Command Line
 
 ```bash
-# Basic quantization
-node src/cli/quantize.js --model model.gguf --quant-type Q4_K_M
+# Start the desktop app
+npm start
 
-# With custom threads
-node src/cli/quantize.js --model model.gguf --quant-type Q5_K_M --threads 8
+# Development mode (auto-reload)
+npm run dev
 
-# With imatrix
-node src/cli/quantize.js --model model.gguf --quant-type IQ2_M --imatrix calibration.txt
+# Build TypeScript
+npm run build
 
-# Batch quantization
-node src/cli/quantize.js --config batch-config.json
+# Build distributable
+npm run electron:build
+
+# Run tests
+npm test
+
+# Lint code
+npm run lint
+
+# Fix lint issues
+npm run lint:fix
+
+# Type check
+npm run typecheck
+
+# Clean build artifacts
+npm run clean
 ```
 
 ### PowerShell Pipeline
 
 ```powershell
-# Basic usage
-.\scripts\quantize.ps1 -ModelPath "model.gguf" -QuantType Q4_K_M
+# Basic quantization
+.\scripts\quantize.ps1 -ModelPath "C:\models\llama-3-8b.gguf" -QuantType IQ2_M
 
-# With imatrix generation
-.\scripts\quantize.ps1 -ModelPath "model.gguf" -QuantType IQ2_M -GenerateImatrix
+# With custom output path
+.\scripts\quantize.ps1 -ModelPath "C:\models\llama-3-8b.gguf" -QuantType Q4_K_M -OutputPath "C:\models\llama-3-8b-Q4_K_M.gguf"
 
-# With custom parameters
-.\scripts\quantize.ps1 -ModelPath "model.gguf" -QuantType Q6_K -Threads 16 -BatchSize 512
+# With imatrix for importance-aware quantization
+.\scripts\quantize.ps1 -ModelPath "C:\models\llama-3-8b.gguf" -QuantType IQ2_M -ImatrixPath "C:\models\imatrix.dat"
 
-# Import and quantize
-.\scripts\quantize.ps1 -ImportPath "path/to/models" -QuantType Q4_K_M -OutputDir "quantized/"
+# With custom thread count
+.\scripts\quantize.ps1 -ModelPath "C:\models\llama-3-8b.gguf" -QuantType Q6_K -Threads 8
+
+# Batch quantization (multiple models)
+.\scripts\batch-quantize.ps1 -ModelList "C:\models\list.txt" -QuantType Q4_K_M
 ```
 
 ---
 
 ## Quantization Methods
 
-| Method | Description | Bitrate | Quality |
-|--------|-------------|---------|---------|
-| **Q4_0** | Original quantization | ~4.5 bpw | Good |
-| **Q4_K_M** | Mixed quantization | ~4.9 bpw | Very Good |
-| **Q5_0** | 5-bit quantization | ~5.5 bpw | Excellent |
-| **Q5_K_M** | Mixed 5-bit | ~5.5 bpw | Excellent |
-| **Q6_K** | 6-bit quantization | ~6.5 bpw | Near Lossless |
-| **Q8_0** | 8-bit quantization | ~8.0 bpw | Near Lossless |
-| **IQ2_XS** | Extremely low bit | ~2.0 bpw | Good for extreme compression |
-| **IQ2_M** | Importance-aware | ~2.5 bpw | Best quality at low bitrate |
-| **IQ3_XS** | 3-bit mixed | ~3.3 bpw | Very Good |
-| **IQ3_XXS** | 3-bit extreme | ~3.0 bpw | Good |
-| **F16** | 16-bit float | 16.0 bpw | Lossless |
-| **F32** | 32-bit float | 32.0 bpw | Lossless |
+The following methods are available from the underlying [llama.cpp](https://github.com/ggerganov/llama.cpp) engine (`ggml_type` enum). They are grouped by bitrate category.
 
-### Importance-Aware Quantization (IQ2_M)
+### Lossless / Near-Lossless
 
-IQ2_M uses an importance matrix (imatrix) to identify which weights are most important to preserve, allowing for much better quality at extremely low bitrates.
+| Method | Bitrate | Quality |
+|--------|---------|---------|
+| F32 | 32.0 bpw | Full FP32 precision |
+| F16 | 16.0 bpw | Full FP16 precision |
+| BF16 | 16.0 bpw | Brain floating point (lossless) |
+| Q8_0 | ~8.0 bpw | Near Lossless |
+| Q6_K | ~6.5 bpw | Near Lossless |
 
-```powershell
-# Step 1: Generate imatrix
-.\scripts\quantize.ps1 -ModelPath "model.gguf" -GenerateImatrix -CalibrationData "corpus.txt"
+### High Quality (5–6 bpw)
 
-# Step 2: Quantize with imatrix
-.\scripts\quantize.ps1 -ModelPath "model.gguf" -QuantType IQ2_M -Imatrix "imatrix.gguf"
-```
+| Method | Bitrate | Quality |
+|--------|---------|---------|
+| Q5_K_M | ~5.5 bpw | Excellent |
+| Q5_0 | ~5.5 bpw | Excellent |
+| Q5_K | ~5.5 bpw | Excellent |
+| Q5_1 | ~5.5 bpw | Excellent |
+
+### Medium Quality (4–5 bpw)
+
+| Method | Bitrate | Quality |
+|--------|---------|---------|
+| Q4_K_M | ~4.9 bpw | Very Good |
+| Q4_K | ~4.9 bpw | Very Good |
+| IQ4_XS | ~4.25 bpw | Very Good |
+| IQ4_NL | ~4.5 bpw | Non-linear quantization |
+| Q4_1 | ~4.5 bpw | Good |
+| Q4_0 | ~4.5 bpw | Good |
+
+### Low Bitrate (2–4 bpw)
+
+| Method | Bitrate | Quality |
+|--------|---------|---------|
+| IQ3_XS | ~3.3 bpw | Very Good |
+| IQ3_S | ~3.4 bpw | Very Good |
+| Q3_K | ~3.3 bpw | Good |
+| IQ2_M | ~2.5 bpw | Best quality at low bitrate |
+| IQ2_S | ~2.3 bpw | Good |
+| IQ2_XS | ~2.0 bpw | Good for extreme compression |
+| Q2_K | ~2.5 bpw | Low bitrate |
+
+### Extreme Compression (< 2 bpw)
+
+| Method | Bitrate | Quality |
+|--------|---------|---------|
+| IQ1_S | ~1.3 bpw | Extreme compression |
+| IQ1_M | ~1.6 bpw | Extreme compression |
+| Q1_0 | ~1.5 bpw | Extreme compression |
+| IQ3_XXS | ~3.0 bpw | Good |
+
+### Emerging Formats
+
+| Method | Bitrate | Quality |
+|--------|---------|---------|
+| MXFP4 | 4.0 bpw | Matrix FP4 (experimental) |
+| NVFP4 | 4.0 bpw | NVIDIA FP4 (experimental) |
+
+> **Note:** Not all methods are supported on every hardware platform. IQ2_M requires imatrix for best results.
 
 ---
 
 ## Configuration
 
-### Hardware Detection
+Configuration is managed through the desktop app's built-in preset system. Save your favorite configurations and load them later.
 
-The quantizer automatically detects your system hardware:
+### Default Settings
 
-```powershell
-# Check detected hardware
-.\scripts\detect-hardware.ps1
-```
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Threads | Auto-detected | Number of CPU threads |
+| GPU Layers | 0 | Number of layers to offload to GPU |
+| Block Size | Auto | Block size for quantization |
+| Imatrix Path | None | Path to importance matrix file |
 
-Output example:
-```
-CPU Cores: 16 (8P + 8E)
-RAM: 32 GB DDR5-5600
-GPU: NVIDIA RTX 4070 (CUDA 12.2)
-Recommended Threads: 16
-Recommended Batch Size: 1024
-```
+### Preset Management
 
-### Preset Configuration
-
-Create a `config.yaml` file:
-
-```yaml
-quantization:
-  default_type: IQ2_M
-  threads: auto
-  batch_size: auto
-  context_size: 4096
-
-imatrix:
-  enabled: true
-  calibration_corpus: "corpus.txt"
-  ntokens: 128000
-
-hardware:
-  auto_detect: true
-  cuda: true
-  memory_limit: 0.9
-
-output:
-  format: gguf
-  suffix: "_quantized"
-  compress: true
-```
-
-### Preset Presets
-
-The app includes built-in presets:
-
-- **Fast** — Quick quantization, lower quality
-- **Balanced** — Good quality/speed tradeoff
-- **Quality** — Maximum quality, slower
-- **Extreme** — Maximum compression (IQ2_M)
-- **Custom** — Full manual control
+- **Save Preset** — Save current settings with a custom name
+- **Load Preset** — Load a previously saved configuration
+- **Export Preset** — Export preset as JSON file
+- **Import Preset** — Import preset from JSON file
 
 ---
 
 ## Hardware Detection
 
-### CPU Detection
+The tool automatically detects your system hardware and optimizes settings:
+
+### Detected Information
+
+- **CPU Cores** — Logical processor count for thread optimization
+- **RAM** — Total system memory for buffer sizing
+- **GPU** — CUDA-capable GPU detection and VRAM measurement
+- **DDR5** — Memory type detection for bandwidth estimation
+
+### Manual Override
+
+You can override auto-detected values in the app settings or via CLI parameters:
 
 ```powershell
-# Detect CPU cores and architecture
-.\scripts\detect-cpu.ps1
-```
-
-### GPU Detection
-
-```powershell
-# Detect CUDA GPUs
-.\scripts\detect-gpu.ps1
-```
-
-### Memory Detection
-
-```powershell
-# Detect RAM and recommend settings
-.\scripts\detect-memory.ps1
+.\scripts\quantize.ps1 -ModelPath "C:\models\model.gguf" -QuantType Q4_K_M -Threads 4 -GPULayers 30
 ```
 
 ---
 
 ## Importance Matrix (imatrix)
 
-The importance matrix is crucial for importance-aware quantization methods like IQ2_M.
+The importance matrix (imatrix) captures token importance statistics from a text corpus, enabling better quality at lower bitrates.
 
 ### Generating imatrix
 
 ```powershell
-# Generate from a text corpus
-.\scripts\generate-imatrix.ps1 -Model "model.gguf" -Corpus "corpus.txt" -Output "imatrix.gguf"
-
-# Generate from multiple files
-.\scripts\generate-imatrix.ps1 -Model "model.gguf" -Files "corpus/*.txt" -Output "imatrix.gguf"
+# Generate imatrix from a text corpus
+.\scripts\quantize.ps1 -ModelPath "C:\models\llama-3-8b.gguf" -QuantType IQ2_M -GenerateImatrix -CorpusPath "C:\corpus\text.txt"
 ```
 
 ### Using imatrix
 
 ```powershell
-# Quantize with imatrix
-.\scripts\quantize.ps1 -Model "model.gguf" -QuantType IQ2_M -Imatrix "imatrix.gguf"
+# Apply imatrix during quantization
+.\scripts\quantize.ps1 -ModelPath "C:\models\llama-3-8b.gguf" -QuantType IQ2_M -ImatrixPath "C:\models\imatrix.dat"
 ```
+
+### Tips
+
+- Use a corpus representative of your target use case
+- Minimum 100MB of text recommended
+- Domain-specific text yields better results
 
 ---
 
@@ -371,56 +384,37 @@ The importance matrix is crucial for importance-aware quantization methods like 
 
 ### Batch Processing
 
-Create `batch-config.json`:
+Quantize multiple models in sequence:
 
-```json
-{
-  "models": [
-    {
-      "input": "llama-3-70b.gguf",
-      "quant_type": "Q4_K_M",
-      "output": "llama-3-70b-q4km.gguf"
-    },
-    {
-      "input": "llama-3-70b.gguf",
-      "quant_type": "Q5_K_M",
-      "output": "llama-3-70b-q5km.gguf"
-    },
-    {
-      "input": "llama-3-70b.gguf",
-      "quant_type": "IQ2_M",
-      "imatrix": "imatrix.gguf",
-      "output": "llama-3-70b-iq2m.gguf"
-    }
-  ],
-  "threads": 16,
-  "parallel": false
-}
+```powershell
+# Create a text file with model paths (one per line)
+# C:\models\model1.gguf
+# C:\models\model2.gguf
+# C:\models\model3.gguf
+
+.\scripts\batch-quantize.ps1 -ModelList "C:\models\list.txt" -QuantType Q4_K_M
 ```
 
-Run batch:
+### CUDA Acceleration
+
+For GPU-accelerated quantization, ensure you have:
+
+1. NVIDIA CUDA GPU (compute capability 5.0+)
+2. CUDA toolkit installed
+3. llama.cpp CUDA binaries downloaded
+
 ```powershell
-.\scripts\batch-quantize.ps1 -Config "batch-config.json"
+# The script will auto-detect CUDA and enable GPU acceleration
+.\scripts\quantize.ps1 -ModelPath "C:\models\model.gguf" -QuantType Q4_K_M -GPULayers 33
 ```
 
 ### Memory Management
 
-The quantizer automatically manages memory:
+The tool automatically manages memory based on your system:
 
-- **Auto-tuning** — Adjusts batch size based on available RAM
-- **GPU Memory** — Detects and uses available VRAM
-- **Swap Handling** — Gracefully handles out-of-memory conditions
-- **Progressive Loading** — Loads models in chunks for large files
-
-### CUDA Acceleration
-
-```powershell
-# Enable CUDA
-.\scripts\quantize.ps1 -Model "model.gguf" -QuantType Q4_K_M -UseCuda
-
-# Select specific GPU
-.\scripts\quantize.ps1 -Model "model.gguf" -QuantType Q4_K_M -CudaDevice 0
-```
+- **RAM < 16GB** — Conservative memory usage, lower block sizes
+- **RAM 16-32GB** — Balanced memory usage
+- **RAM > 32GB** — Aggressive memory usage, higher block sizes
 
 ---
 
@@ -428,61 +422,36 @@ The quantizer automatically manages memory:
 
 ```
 geeked-out-quantizer/
-├── README.md                 # This file
-├── LICENSE
-├── package.json              # Dependencies and scripts
-├── tsconfig.json             # TypeScript configuration
-├── electron-builder.yml      # Electron build config
-├── .gitignore
-│
 ├── src/
-│   ├── main/                 # Electron main process
-│   │   ├── index.ts          # Main entry point
-│   │   ├── quantization/     # Quantization engine
-│   │   │   ├── engine.ts     # Core quantization logic
-│   │   │   ├── types.ts      # Type definitions
-│   │   │   └── utils.ts      # Helper functions
-│   │   ├── hardware/         # Hardware detection
-│   │   │   ├── cpu.ts        # CPU detection
-│   │   │   ├── gpu.ts        # GPU/CUDA detection
-│   │   │   └── memory.ts     # RAM detection
-│   │   └── ipc/              # IPC handlers
-│   │       └── handlers.ts
-│   │
-│   ├── preload/              # Electron preload scripts
+│   ├── main/              # Electron main process
+│   │   ├── index.ts       # Main entry point
+│   │   ├── quantize.ts    # Quantization engine
+│   │   ├── hardware.ts    # Hardware detection
+│   │   └── ipc.ts         # IPC handlers
+│   ├── renderer/          # Electron UI
+│   │   ├── index.html     # UI template
+│   │   ├── app.ts         # UI logic
+│   │   └── styles/        # CSS themes
+│   ├── preload/           # Security bridge
 │   │   └── index.ts
-│   │
-│   ├── renderer/             # Electron renderer (UI)
-│   │   ├── index.html        # Main HTML
-│   │   ├── styles/           # CSS styles
-│   │   │   ├── main.css
-│   │   │   ├── components.css
-│   │   │   └── themes.css
-│   │   └── app.ts            # UI logic
-│   │
-│   ├── cli/                  # CLI tools
-│   │   ├── quantize.ts       # Main CLI
-│   │   └── imatrix.ts        # imatrix CLI
-│   │
-│   └── shared/               # Shared utilities
-│       ├── config.ts         # Configuration
-│       ├── logger.ts         # Logging
-│       └── utils.ts          # Common utilities
-│
-├── scripts/                  # PowerShell/Bash scripts
-│   ├── quantize.ps1          # Main quantization script
-│   ├── detect-hardware.ps1   # Hardware detection
-│   ├── generate-imatrix.ps1  # imatrix generation
-│   ├── batch-quantize.ps1    # Batch processing
-│   └── download-binaries.ps1 # Binary downloader
-│
-├── config/                   # Configuration files
-│   ├── presets.yaml          # Built-in presets
-│   └── default.yaml          # Default config
-│
-├── dist/                     # Build output
-├── build/                    # Electron build output
-└── node_modules/
+│   └── shared/            # Shared utilities
+│       ├── config.ts      # Config manager
+│       └── logger.ts      # Logging
+├── scripts/               # PowerShell scripts
+│   ├── quantize.ps1       # Main quantization script
+│   ├── detect-hardware.ps1 # Hardware detection
+│   ├── download-binaries.ps1 # Binary downloader
+│   └── batch-quantize.ps1  # Batch processing
+├── dist/                  # Build output
+├── package.json           # Dependencies and scripts
+├── tsconfig.main.json     # TypeScript config (main)
+├── tsconfig.renderer.json # TypeScript config (renderer)
+├── electron-builder.yml   # Electron build config
+├── .gitignore             # Git ignore rules
+├── README.md              # This file
+├── CONTRIBUTING.md        # Contribution guide
+├── CHANGELOG.md           # Version history
+└── LICENSE                # MIT License
 ```
 
 ---
@@ -492,12 +461,10 @@ geeked-out-quantizer/
 ### Setup
 
 ```bash
-# Clone and install
-git clone https://github.com/LGxNDaRY-GeekedOutAi/geeked-out-quantizer.git
-cd geeked-out-quantizer
+# Install dependencies
 npm install
 
-# Start development mode
+# Start development mode (auto-reload)
 npm run dev
 
 # Run tests
@@ -519,7 +486,9 @@ npm run build      # Build the app
 npm run electron:build  # Build distributables
 npm test           # Run tests
 npm run lint       # Lint code
+npm run lint:fix   # Fix lint issues
 npm run typecheck  # TypeScript type check
+npm run clean      # Clean build artifacts
 ```
 
 ### Building from Source
@@ -563,7 +532,7 @@ Contributions are welcome! Please read our contributing guidelines:
 - 🖥️ UI improvements
 - 📚 Documentation
 - 🧪 Tests
-- 🐧 Linux/macOS support
+- 🐧 Linux/macOS CLI support
 - 🎨 Theme contributions
 
 ---
