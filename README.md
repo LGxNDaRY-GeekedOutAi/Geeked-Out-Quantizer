@@ -238,10 +238,13 @@ node src/cli/quantize.js --config batch-config.json
 | **Q5_0** | 5-bit quantization | ~5.5 bpw | Excellent |
 | **Q5_K_M** | Mixed 5-bit | ~5.5 bpw | Excellent |
 | **Q6_K** | 6-bit quantization | ~6.5 bpw | Near Lossless |
+| **Q8_0** | 8-bit quantization | ~8.0 bpw | Near Lossless |
 | **IQ2_XS** | Extremely low bit | ~2.0 bpw | Good for extreme compression |
 | **IQ2_M** | Importance-aware | ~2.5 bpw | Best quality at low bitrate |
 | **IQ3_XS** | 3-bit mixed | ~3.3 bpw | Very Good |
 | **IQ3_XXS** | 3-bit extreme | ~3.0 bpw | Good |
+| **F16** | 16-bit float | 16.0 bpw | Lossless |
+| **F32** | 32-bit float | 32.0 bpw | Lossless |
 
 ### Importance-Aware Quantization (IQ2_M)
 
