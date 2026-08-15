@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';">
+  <title>Geeked.Out Quantizer</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/themes.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="app-title">
+          <span class="logo">🧠</span>
+          Geeked.Out Quantizer
+        </h1>
+        <span class="app-version">v1.0.0</span>
+      </div>
+      <div class="header-right">
+        <button class="btn btn-icon" id="btn-settings" title="Settings">⚙️</button>
+        <button class="btn btn-icon" id="btn-theme" title="Toggle Theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Hardware Info Panel -->
+      <section class="hardware-panel">
+        <h2 class="panel-title">🖥️ Hardware</h2>
+        <div class="hardware-grid">
+          <div class="hardware-card">
+            <div class="hardware-icon">🔲</div>
+            <div class="hardware-info">
+              <span class="hardware-label">CPU</span>
+              <span class="hardware-value" id="cpu-info">Detecting...</span>
+            </div>
+          </div>
+          <div class="hardware-card">
+            <div class="hardware-icon">🎮</div>
+            <div class="hardware-info">
+              <span class="hardware-label">GPU</span>
+              <span class="hardware-value" id="gpu-info">Detecting...</span>
+            </div>
+          </div>
+          <div class="hardware-card">
+            <div class="hardware-icon">💾</div>
+            <div class="hardware-info">
+              <span class="hardware-label">RAM</span>
+              <span class="hardware-value" id="memory-info">Detecting...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quantization Panel -->
+      <section class="quant-panel">
+        <h2 class="panel-title">⚡ Quantization</h2>
+        
+        <!-- Model Selection -->
+        <div class="form-group">
+          <label class="form-label" for="model-path">Model File</label>
+          <div class="file-input-wrapper">
+            <input type="text" id="model-path" class="form-input" placeholder="Select or drag a GGUF model file" readonly>
+            <button class="btn btn-primary" id="btn-browse">Browse</button>
+          </div>
+        </div>
+
+        <!-- Preset Selection -->
+        <div class="form-group">
+          <label class="form-label" for="preset-select">Preset</label>
+          <select id="preset-select" class="form-select">
+            <option value="fast">Fast (Q4_K_M)</option>
+            <option value="balanced" selected>Balanced (Q5_K_M)</option>
+            <option value="quality">Quality (Q6_K)</option>
+            <option value="extreme">Extreme (IQ2_M)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <!-- Quantization Type -->
+        <div class="form-group">
+          <label class="form-label" for="quant-type">Quantization Type</label>
+          <select id="quant-type" class="form-select">
+            <option value="Q4_0">Q4_0 - 4-bit (Original)</option>
+            <option value="Q4_K_M">Q4_K_M - 4-bit (Mixed, Recommended)</option>
+            <option value="Q5_0">Q5_0 - 5-bit</option>
+            <option value="Q5_K_M">Q5_K_M - 5-bit (Mixed)</option>
+            <option value="Q6_K">Q6_K - 6-bit</option>
+            <option value="Q8_0">Q8_0 - 8-bit</option>
+            <option value="IQ2_XS">IQ2_XS - 2-bit (Extreme Compression)</option>
+            <option value="IQ2_M">IQ2_M - 2.5-bit (Importance-Aware)</option>
+            <option value="IQ3_XS">IQ3_XS - 3-bit</option>
+            <option value="IQ3_XXS">IQ3_XXS - 3-bit (Extreme)</option>
+            <option value="F16">F16 - 16-bit (Float)</option>
+            <option value="F32">F32 - 32-bit (Float)</option>
+          </select>
+        </div>
+
+        <!-- Advanced Options -->
+        <details class="advanced-options">
+          <summary class="advanced-summary">Advanced Options</summary>
+          <div class="advanced-content">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="threads">Threads</label>
+                <input type="number" id="threads" class="form-input" value="0" min="0" placeholder="Auto">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="batch-size">Batch Size</label>
+                <input type="number" id="batch-size" class="form-input" value="512" min="128" max="4096">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="context-size">Context Size</label>
+                <input type="number" id="context-size" class="form-input" value="4096" min="256" max="32768">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="output-dir">Output Directory</label>
+                <input type="text" id="output-dir" class="form-input" placeholder="Current directory">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="use-cuda" checked>
+                <span>Use CUDA (GPU Acceleration)</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="use-imatrix">
+                <span>Use Importance Matrix (imatrix)</span>
+              </label>
+            </div>
+          </div>
+        </details>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn btn-primary btn-large" id="btn-quantize">
+            🚀 Start Quantization
+          </button>
+          <button class="btn btn-danger btn-large" id="btn-cancel" style="display: none;">
+            ⏹️ Cancel
+          </button>
+        </div>
+      </section>
+
+      <!-- Progress Panel -->
+      <section class="progress-panel" id="progress-panel" style="display: none;">
+        <h2 class="panel-title">📊 Progress</h2>
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-info">
+            <span class="progress-percentage" id="progress-percentage">0%</span>
+            <span class="progress-eta" id="progress-eta">ETA: --</span>
+          </div>
+          <div class="progress-status" id="progress-status">Initializing...</div>
+        </div>
+      </section>
+
+      <!-- Log Panel -->
+      <section class="log-panel">
+        <h2 class="panel-title">📋 Log</h2>
+        <div class="log-container" id="log-container">
+          <div class="log-entry log-info">Ready to quantize. Import a model to get started.</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <span>Made with ❤️ by <a href="https://github.com/LGxNDaRY-GeekedOutAi" target="_blank">LGxNDaRY</a></span>
+      <span>
+        <a href="https://github.com/LGxNDaRY-GeekedOutAi/geeked-out-quantizer" target="_blank">GitHub</a>
+      </span>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

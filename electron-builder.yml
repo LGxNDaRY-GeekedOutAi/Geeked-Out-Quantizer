@@ -1,0 +1,53 @@
+# Geeked.Out Quantizer - Electron Builder Configuration
+{
+  "appId": "ai.geekedout.quantizer",
+  "productName": "Geeked.Out Quantizer",
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
+  },
+  "files": [
+    "dist/**/*",
+    "package.json",
+    "bin/**/*"
+  ],
+  "extraResources": [
+    "bin/**/*"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "assets/icon.ico",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
+  },
+  "linux": {
+    "target": [
+      "AppImage",
+      "deb"
+    ],
+    "category": "Utility",
+    "icon": "assets/icon.png"
+  },
+  "mac": {
+    "target": [
+      "dmg",
+      "zip"
+    ],
+    "category": "public.app-category.utilities",
+    "icon": "assets/icon.icns"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  }
+}
