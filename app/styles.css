@@ -1,0 +1,15 @@
+/* Geeked.Out Quantizer Styles */
+body {
+    font-family: sans-serif;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Add more styles as needed for the Electron desktop app */
