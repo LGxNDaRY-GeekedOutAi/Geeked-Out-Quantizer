@@ -1,21 +1,19 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "outDir": "./dist/renderer",
-    "rootDir": "./src/renderer",
+    "target": "ESNext",
+    "module": "commonjs",
+    "lib": ["ESNext", "DOM"],
+    "moduleResolution": "node",
+    "outDir": "dist/renderer",
+    "rootDir": "src/renderer",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "jsx": "react-jsx",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true
+    "isolatedModules": true,
+    "noEmitOnError": true,
+    "jsx": "react-jsx"
   },
-  "include": ["src/renderer/**/*"],
-  "exclude": ["node_modules", "dist", "build"]
+  "include": ["src/renderer/**/*"]
 }
