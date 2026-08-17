@@ -248,7 +248,7 @@ npm run clean
 ## Quantization Methods
 
 | Method | Bitrate | Quality |
-|--------|---------|---------|
+| --- | --- | --- |
 | Q4_0 | ~4.5 bpw | Good |
 | Q4_K_M | ~4.9 bpw | Very Good |
 | Q5_0 | ~5.5 bpw | Excellent |
@@ -261,6 +261,27 @@ npm run clean
 | IQ3_XXS | ~3.0 bpw | Good |
 | F16 | 16.0 bpw | Lossless |
 | F32 | 32.0 bpw | Lossless |
+| Q2_K | ~2.0 bpw | Good for extreme compression |
+| Q3_K | ~3.5 bpw | Very Good |
+| Q3_K_S | ~3.2 bpw | Very Good (slim variant) |
+| Q3_K_M | ~3.8 bpw | Very Good (medium variant) |
+| Q4_K_S | ~4.7 bpw | Very Good (slim variant) |
+| IQ1_M | ~1.5 bpw | Good for extreme compression |
+| IQ2_XXS | ~1.8 bpw | Best quality at lowest bitrate |
+| IQ4_XS | ~4.0 bpw | Excellent (extra small) |
+| IQ4_NL | ~4.8 bpw | Excellent (nonlinear) |
+| IQ5_XS | ~5.2 bpw | Excellent (extra small) |
+| IQ5_NL | ~5.6 bpw | Excellent (nonlinear) |
+| IQ6_XS | ~6.2 bpw | Near Lossless (extra small) |
+| IQ6_NL | ~6.7 bpw | Near Lossless (nonlinear) |
+| IQ7_XS | ~7.2 bpw | Near Lossless (extra small) |
+| BF16 | 16.0 bpw | Lossless (bfloat16) |
+| Q0_0 | ~1.0 bpw | Good for maximum compression |
+| Q1_0 | ~1.4 bpw | Good for extreme compression |
+| Q2_K_S | ~2.3 bpw | Good for extreme compression (slim variant) |
+| Q4_K | ~5.0 bpw | Very Good (standard non-slim) |
+| IQ3_M | ~3.8 bpw | Very Good (medium integer quantization) |
+| IQ4_XXS | ~4.2 bpw | Excellent (extra extra small) |
 
 ---
 
