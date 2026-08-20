@@ -26,6 +26,12 @@ This README documents the extent of my knowledge while developing this applicati
 * **Desktop Experience**: Polished Electron UI with live console output
 * **Batch Processing**: Quantize entire model libraries with a single command
 
+### 🎬 Live Demo
+
+[![Watch Geeked.Out Quantizer in Action](https://img.youtube.com/vi/1AQGA-KfX5w/hqdefault.jpg)](https://www.youtube.com/watch?v=1AQGA-KfX5w&t=660s)
+
+*See the Geeked.Out Quantizer being used in practice — from model scanning to importance-aware quantization with automatic imatrix generation.*
+
 ---
 
 ## 🚀 How to Run This Project
